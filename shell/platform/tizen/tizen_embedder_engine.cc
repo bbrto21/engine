@@ -110,7 +110,7 @@ bool TizenEmbedderEngine::RunEngine(
   config.open_gl.clear_current = ClearContext;
   config.open_gl.present = Present;
   config.open_gl.fbo_callback = GetActiveFbo;
-  config.open_gl.surface_transformation = Transformation;
+  // config.open_gl.surface_transformation = Transformation;
   config.open_gl.gl_proc_resolver = GlProcResolver;
   config.open_gl.gl_external_texture_frame_callback = OnAcquireExternalTexture;
 
@@ -174,7 +174,8 @@ bool TizenEmbedderEngine::RunEngine(
   key_event_handler_ = std::make_unique<KeyEventHandler>(this);
   touch_event_handler_ = std::make_unique<TouchEventHandler>(this);
 
-  SetWindowOrientation(0);
+  // SetWindowOrientation(0);
+  SendWindowMetrics(tizen_surface->GetWidth(), tizen_surface->GetHeight(), 0.0);
 
   return true;
 }
@@ -257,6 +258,7 @@ void TizenEmbedderEngine::SendWindowMetrics(int32_t width, int32_t height,
 // This must be called at least once in order to initialize the value of
 // transformation_.
 void TizenEmbedderEngine::SetWindowOrientation(int32_t degree) {
+  return;
   if (!tizen_surface) {
     return;
   }
