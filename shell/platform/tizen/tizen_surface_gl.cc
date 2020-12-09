@@ -3,8 +3,10 @@
 // found in the LICENSE file.
 
 #include "tizen_surface_gl.h"
+
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
+
 #include "flutter/shell/platform/tizen/logger.h"
 
 TizenSurfaceGL::TizenSurfaceGL(int32_t x, int32_t y, int32_t width,
@@ -78,7 +80,7 @@ uint32_t TizenSurfaceGL::OnGetFBO() {
   return 0;  // FBO0
 }
 
-#define GL_FUNC(FunctionName)              \
+#define GL_FUNC(FunctionName)                     \
   else if (strcmp(name, #FunctionName) == 0) {    \
     return reinterpret_cast<void*>(FunctionName); \
   }
@@ -244,6 +246,10 @@ bool TizenSurfaceGL::InitalizeDisplay() {
   ecore_wl2_window_position_set(wl2_window_, x_, y_);
   ecore_wl2_window_geometry_set(wl2_window_, x_, y_, window_width_,
                                 window_height_);
+
+  ecore_wl2_window_wm_rotation_supported_set(wl2_window_, EINA_TRUE);
+  const int rots[4] = {0, 90, 180, 270};
+  ecore_wl2_window_available_rotations_set(wl2_window_, rots, 4);
 
   // egl WINDOW
   egl_window_ =
