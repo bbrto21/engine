@@ -9,6 +9,7 @@
 #include <Ecore_Wl2.h>
 
 #include <memory>
+#include <vector>
 
 void LogLastEGLError();
 
@@ -41,12 +42,17 @@ class TizenNativeWindow {
 
   TizenNativeWindow(int32_t x, int32_t y, int32_t w, int32_t h);
   ~TizenNativeWindow();
+
   bool IsValid() { return is_valid_; }
+  void Show();
+  void SetAvailableAnlges(const std::vector<int>& angles);
+  void ResetTizenNativeEGLWindow();
+  TizenNativeWindowGeometry GetGeometry();
+
   Ecore_Wl2_Window* GetWindowHandle() { return wl2_window_; }
   std::shared_ptr<TizenNativeEGLWindow> GetTizenNativeEGLWindow() {
     return tizen_native_egl_window_;
   };
-  TizenNativeWindowGeometry GetGeometry();
 
  private:
   std::shared_ptr<TizenNativeEGLWindow> tizen_native_egl_window_;

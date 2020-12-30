@@ -39,6 +39,9 @@ TizenEmbedderEngine::TizenEmbedderEngine(
       window_properties.x, window_properties.y, window_properties.width,
       window_properties.height);
   tizen_surface = std::make_unique<TizenSurfaceGL>(tizen_native_window);
+  std::vector<int> angles{0, 90, 180, 270};
+  tizen_native_window->SetAvailableAnlges(angles);
+  tizen_native_window->Show();
 
   // Run flutter task on Tizen main loop.
   // Tizen engine has four threads (GPU thread, UI thread, IO thread, platform
@@ -132,7 +135,7 @@ bool TizenEmbedderEngine::RunEngine(
   config.open_gl.clear_current = ClearContext;
   config.open_gl.present = Present;
   config.open_gl.fbo_callback = GetActiveFbo;
-  config.open_gl.surface_transformation = Transformation;
+  // config.open_gl.surface_transformation = Transformation;
   config.open_gl.gl_proc_resolver = GlProcResolver;
   config.open_gl.gl_external_texture_frame_callback = OnAcquireExternalTexture;
 
@@ -193,7 +196,8 @@ bool TizenEmbedderEngine::RunEngine(
   key_event_handler_ = std::make_unique<KeyEventHandler>(this);
   touch_event_handler_ = std::make_unique<TouchEventHandler>(this);
 
-  SetWindowOrientation(0);
+  auto geometry = tizen_native_window->GetGeometry();
+  SendWindowMetrics(geometry.w, geometry.h, 0.0);
 
   return true;
 }
@@ -263,37 +267,56 @@ void TizenEmbedderEngine::SetWindowOrientation(int32_t degree) {
     return;
   }
 
+  static bool ignore_once = true;  // tempory
+  if (ignore_once) {
+    ignore_once = false;
+    return;
+  }
+
+  // ecore_timer_add(
+  //     5,
+  //     [](void* data) -> Eina_Bool {
+  //       FT_LOGD("enter");
+  //       TizenEmbedderEngine* engine = (TizenEmbedderEngine*)data;
+  //       engine->tizen_surface = nullptr;
+  //       engine->tizen_native_window->ResetTizenNativeEGLWindow();
+  //       engine->tizen_surface =
+  //           std::make_unique<TizenSurfaceGL>(engine->tizen_native_window);
+  //       return ECORE_CALLBACK_CANCEL;
+  //     },
+  //     this);
+
   // Compute renderer transformation based on the angle of rotation.
-  double rad = (360 - degree) * M_PI / 180;
-  auto geometry = tizen_native_window->GetGeometry();
-  double width = geometry.w;
-  double height = geometry.h;
+  // double rad = (360 - degree) * M_PI / 180;
+  // auto geometry = tizen_native_window->GetGeometry();
+  // double width = geometry.w;
+  // double height = geometry.h;
 
-  if (text_input_channel->IsSoftwareKeyboardShowing()) {
-    height -= text_input_channel->GetCurrentKeyboardGeometry().h;
-  }
+  // if (text_input_channel->IsSoftwareKeyboardShowing()) {
+  //   height -= text_input_channel->GetCurrentKeyboardGeometry().h;
+  // }
 
-  double trans_x = 0.0, trans_y = 0.0;
-  if (degree == 90) {
-    trans_y = height;
-  } else if (degree == 180) {
-    trans_x = width;
-    trans_y = height;
-  } else if (degree == 270) {
-    trans_x = width;
-  }
-  transformation_ = {
-      cos(rad), -sin(rad), trans_x,  // x
-      sin(rad), cos(rad),  trans_y,  // y
-      0.0,      0.0,       1.0       // perspective
-  };
-  touch_event_handler_->rotation = degree;
-  text_input_channel->rotation = degree;
-  if (degree == 90 || degree == 270) {
-    SendWindowMetrics(height, width, 0.0);
-  } else {
-    SendWindowMetrics(width, height, 0.0);
-  }
+  // double trans_x = 0.0, trans_y = 0.0;
+  // if (degree == 90) {
+  //   trans_y = height;
+  // } else if (degree == 180) {
+  //   trans_x = width;
+  //   trans_y = height;
+  // } else if (degree == 270) {
+  //   trans_x = width;
+  // }
+  // transformation_ = {
+  //     cos(rad), -sin(rad), trans_x,  // x
+  //     sin(rad), cos(rad),  trans_y,  // y
+  //     0.0,      0.0,       1.0       // perspective
+  // };
+  // touch_event_handler_->rotation = degree;
+  // text_input_channel->rotation = degree;
+  // if (degree == 90 || degree == 270) {
+  //   SendWindowMetrics(height, width, 0.0);
+  // } else {
+  //   SendWindowMetrics(width, height, 0.0);
+  // }
 }
 
 void TizenEmbedderEngine::SendLocales() { localization_channel->SendLocales(); }

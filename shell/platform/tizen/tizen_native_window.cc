@@ -149,7 +149,6 @@ TizenNativeWindow::TizenNativeWindow(int32_t x, int32_t y, int32_t w,
   ecore_wl2_window_alpha_set(wl2_window_, EINA_FALSE);
   ecore_wl2_window_aux_hint_add(wl2_window_, 0, "wm.policy.win.user.geometry",
                                 "1");
-  ecore_wl2_window_show(wl2_window_);
 
   tizen_native_egl_window_ = std::make_shared<TizenNativeEGLWindow>(this, w, h);
   is_valid_ = true;
@@ -161,6 +160,28 @@ TizenNativeWindow::~TizenNativeWindow() {
     ecore_wl2_window_free(wl2_window_);
     wl2_window_ = nullptr;
   }
+}
+void TizenNativeWindow::Show() {
+  FT_ASSERT(IsValid());
+  ecore_wl2_window_show(wl2_window_);
+}
+
+void TizenNativeWindow::SetAvailableAnlges(const std::vector<int>& angles) {
+  FT_LOGD("size : %zu", angles.size());
+  int rotations[4] = {0};
+  for (std::size_t i = 0; i < angles.size(); ++i) {
+    rotations[i] = static_cast<int>(angles[i]);
+  }
+  ecore_wl2_window_available_rotations_set(wl2_window_, rotations,
+                                           angles.size());
+}
+
+void TizenNativeWindow::ResetTizenNativeEGLWindow() {
+  FT_LOGD("enter");
+  auto geometry = GetGeometry();
+  tizen_native_egl_window_ = nullptr;
+  tizen_native_egl_window_ =
+      std::make_shared<TizenNativeEGLWindow>(this, geometry.w, geometry.h);
 }
 
 TizenNativeWindow::TizenNativeWindowGeometry TizenNativeWindow::GetGeometry() {
