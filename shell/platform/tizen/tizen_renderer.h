@@ -65,8 +65,11 @@ class TizenRenderer {
 #else
   virtual void* SetupEvasWindow(int32_t x, int32_t y, int32_t w, int32_t h) = 0;
   virtual void DestoryEvasWindow() = 0;
+
+ public:
   virtual void* GetImageHandle() = 0;
 
+ protected:
   bool SetupEvasGL(int32_t x, int32_t y, int32_t w, int32_t h);
   void DestoryEvasGL();
 #endif
@@ -84,7 +87,6 @@ class TizenRenderer {
 
   Evas_GL_Surface* gl_surface_{nullptr};
   Evas_GL_Surface* gl_resource_surface_{nullptr};
-  void (*pixelDirtyCallback_)(void* data, Evas_Object* o);
 
   bool ChooseEGLConfiguration();
   void PrintEGLError();

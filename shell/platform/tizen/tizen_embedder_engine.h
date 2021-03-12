@@ -154,8 +154,8 @@ class TizenEmbedderEngine : public TizenRenderer::Delegate {
   std::unique_ptr<flutter::PluginRegistrar> internal_plugin_registrar_;
 
   // The event loop for the main thread that allows for delayed task execution.
-  std::unique_ptr<TizenEventLoop> event_loop_;
-
+  std::unique_ptr<TizenPlatformEventLoop> event_loop_;
+  std::unique_ptr<TizenRenderEventLoop> render_loop_;
   // The vsync waiter for the embedder.
   std::unique_ptr<TizenVsyncWaiter> tizen_vsync_waiter_;
 

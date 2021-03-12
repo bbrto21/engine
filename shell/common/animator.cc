@@ -31,6 +31,10 @@ Animator::Animator(Delegate& delegate,
       dart_frame_deadline_(0),
 #if FLUTTER_SHELL_ENABLE_METAL
       layer_tree_pipeline_(fml::MakeRefCounted<LayerTreePipeline>(2)),
+#elif FLUTTER_TIZEN_SHELL
+      // FIXME
+      // This is a workaround to avoid flickering that occurs in evas gl direct mode.
+      layer_tree_pipeline_(fml::MakeRefCounted<LayerTreePipeline>(1)),
 #else   // FLUTTER_SHELL_ENABLE_METAL
       // TODO(dnfield): We should remove this logic and set the pipeline depth
       // back to 2 in this case. See

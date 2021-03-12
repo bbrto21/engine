@@ -10,7 +10,6 @@
 #else
 #include <Evas_GL_GLES3_Helpers.h>
 Evas_GL* g_evas_gl = nullptr;
-EvasGLSync g_glSync = nullptr;
 EVAS_GL_GLOBAL_GLES3_DEFINE();
 #endif
 
@@ -482,15 +481,6 @@ bool TizenRenderer::OnMakeCurrent() {
   if (evas_gl_make_current(evas_gl_, gl_surface_, gl_context_) != EINA_TRUE) {
     return false;
   }
-  {
-    if (g_glSync) {
-      evasglClientWaitSync(evas_gl_, g_glSync,
-                           EVAS_GL_SYNC_PRIOR_COMMANDS_COMPLETE,
-                           EVAS_GL_FOREVER);
-      evasglDestroySync(evas_gl_, g_glSync);
-      g_glSync = nullptr;
-    }
-  }
 
   return true;
 }
@@ -527,11 +517,7 @@ bool TizenRenderer::OnPresent() {
     SendRotationChangeDone();
     received_rotation = false;
   }
-  evas_object_image_pixels_dirty_set((Evas_Object*)GetImageHandle(), EINA_TRUE);
-  {
-    int attr[] = {EVAS_GL_NONE};
-    g_glSync = evasglCreateSync(evas_gl_, EVAS_GL_SYNC_FENCE, attr);
-  }
+
   return true;
 }
 
@@ -1027,14 +1013,11 @@ bool TizenRenderer::SetupEvasGL(int32_t x, int32_t y, int32_t w, int32_t h) {
   gl_config_->color_format = EVAS_GL_RGBA_8888;
   gl_config_->depth_bits = EVAS_GL_DEPTH_NONE;
   gl_config_->stencil_bits = EVAS_GL_STENCIL_NONE;
-  gl_config_->options_bits = EVAS_GL_OPTIONS_NONE;
-
 #define EVAS_GL_OPTIONS_DIRECT_MEMORY_OPTIMIZE (1 << 12)
 #define EVAS_GL_OPTIONS_DIRECT_OVERRIDE (1 << 13)
-  // gl_config_->options_bits = (Evas_GL_Options_Bits)(
-  //     EVAS_GL_OPTIONS_DIRECT | EVAS_GL_OPTIONS_DIRECT_OVERRIDE |
-  //     EVAS_GL_OPTIONS_DIRECT_MEMORY_OPTIMIZE |
-  //     EVAS_GL_OPTIONS_CLIENT_SIDE_ROTATION);
+  gl_config_->options_bits = (Evas_GL_Options_Bits)(
+      EVAS_GL_OPTIONS_DIRECT | EVAS_GL_OPTIONS_DIRECT_MEMORY_OPTIMIZE |
+      EVAS_GL_OPTIONS_DIRECT_OVERRIDE | EVAS_GL_OPTIONS_CLIENT_SIDE_ROTATION);
 
   gl_context_ =
       evas_gl_context_version_create(evas_gl_, NULL, EVAS_GL_GLES_3_X);
@@ -1064,12 +1047,7 @@ bool TizenRenderer::SetupEvasGL(int32_t x, int32_t y, int32_t w, int32_t h) {
   Evas_Native_Surface ns;
   evas_gl_native_surface_get(evas_gl_, gl_surface_, &ns);
   evas_object_image_native_surface_set((Evas_Object*)GetImageHandle(), &ns);
-  pixelDirtyCallback_ = [](void* data, Evas_Object* o) {
-    TizenRenderer* renderer = (TizenRenderer*)data;
-    renderer->flush();
-  };
-  evas_object_image_pixels_get_callback_set((Evas_Object*)GetImageHandle(),
-                                            pixelDirtyCallback_, this);
+
   return true;
 }
 
