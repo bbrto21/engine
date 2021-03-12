@@ -21,7 +21,7 @@ void* TizenRendererEvasGL::SetupEvasWindow(int32_t x, int32_t y, int32_t w,
     FT_LOGE("Failed to create because of the wrong size");
     return nullptr;
   }
-  elm_config_accel_preference_set("opengl");
+  elm_config_accel_preference_set("hw:opengl");
 
   evas_window_ = elm_win_add(NULL, NULL, ELM_WIN_BASIC);
   elm_win_alpha_set(evas_window_, EINA_FALSE);
@@ -36,13 +36,13 @@ void* TizenRendererEvasGL::SetupEvasWindow(int32_t x, int32_t y, int32_t w,
   evas_object_size_hint_weight_set(bg, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
   elm_win_resize_object_add(evas_window_, bg);
 
-  graphicsAdapter_ =
+  graphics_adapter_ =
       evas_object_image_filled_add(evas_object_evas_get(evas_window_));
-  evas_object_resize(graphicsAdapter_, w, h);
-  evas_object_move(graphicsAdapter_, x, y);
-  evas_object_image_size_set(graphicsAdapter_, w, h);
-  evas_object_image_alpha_set(graphicsAdapter_, EINA_TRUE);
-  elm_win_resize_object_add(evas_window_, graphicsAdapter_);
+  evas_object_resize(graphics_adapter_, w, h);
+  evas_object_move(graphics_adapter_, x, y);
+  evas_object_image_size_set(graphics_adapter_, w, h);
+  evas_object_image_alpha_set(graphics_adapter_, EINA_TRUE);
+  elm_win_resize_object_add(evas_window_, graphics_adapter_);
 
   int rotations[4] = {0, 90, 180, 270};
   elm_win_wm_rotation_available_rotations_set(evas_window_,
@@ -54,10 +54,10 @@ void* TizenRendererEvasGL::SetupEvasWindow(int32_t x, int32_t y, int32_t w,
 
 void TizenRendererEvasGL::RotationEventCb(void* data, Evas_Object* obj,
                                           void* event_info) {
-  // auto* self = reinterpret_cast<TizenRendererEvasGL*>(data);
-  // Ecore_Wl2_Event_Window_Rotation *ev =
-  //     reinterpret_cast<Ecore_Wl2_Event_Window_Rotation *>(event);
-  // self->delegate_.OnRotationChange(ev->angle);
+  auto* self = reinterpret_cast<TizenRendererEvasGL*>(data);
+  // TODO : Use current window rotation degree
+  FT_UNIMPLEMENTED();
+  self->delegate_.OnRotationChange(0);
 }
 
 void TizenRendererEvasGL::Show() {
@@ -70,7 +70,7 @@ void TizenRendererEvasGL::SetRotate(int angle) {
   received_rotation = true;
 }
 
-void* TizenRendererEvasGL::GetImageHandle() { return (void*)graphicsAdapter_; }
+void* TizenRendererEvasGL::GetImageHandle() { return (void*)graphics_adapter_; }
 
 void TizenRendererEvasGL::ResizeWithRotation(int32_t x, int32_t y,
                                              int32_t width, int32_t height,
@@ -81,16 +81,12 @@ void TizenRendererEvasGL::ResizeWithRotation(int32_t x, int32_t y,
 }
 
 void TizenRendererEvasGL::SendRotationChangeDone() {
-  // int x, y, w, h;
-  // ecore_wl2_window_geometry_get(ecore_wl2_window_, &x, &y, &w, &h);
-  // ecore_wl2_window_rotation_change_done_send(
-  //     ecore_wl2_window_, ecore_wl2_window_rotation_get(ecore_wl2_window_), w,
-  //     h);
+  elm_win_wm_rotation_manual_rotation_done(evas_window_);
 }
 
 void TizenRendererEvasGL::DestoryEvasWindow() {
   evas_object_del(evas_window_);
-  evas_object_del(graphicsAdapter_);
+  evas_object_del(graphics_adapter_);
 }
 
 TizenRenderer::TizenWindowGeometry TizenRendererEvasGL::GetGeometry() {
@@ -102,5 +98,5 @@ TizenRenderer::TizenWindowGeometry TizenRendererEvasGL::GetGeometry() {
 
 int TizenRendererEvasGL::GetEcoreWindowId() {
   return (int)ecore_evas_window_get(
-      ecore_evas_ecore_evas_get(evas_object_evas_get(graphicsAdapter_)));
+      ecore_evas_ecore_evas_get(evas_object_evas_get(graphics_adapter_)));
 }

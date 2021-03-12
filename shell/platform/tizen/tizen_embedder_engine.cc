@@ -15,6 +15,7 @@
 
 // Unique number associated with platform tasks.
 static constexpr size_t kPlatformTaskRunnerIdentifier = 1;
+static constexpr size_t kRederTaskRunnerIdentifier = 2;
 
 static DeviceProfile GetDeviceProfile() {
   char* feature_profile;
@@ -66,13 +67,22 @@ TizenEmbedderEngine::TizenEmbedderEngine(
   // Run flutter task on Tizen main loop.
   // Tizen engine has four threads (GPU thread, UI thread, IO thread, platform
   // thread). UI threads need to send flutter task to platform thread.
-  event_loop_ = std::make_unique<TizenEventLoop>(
+  event_loop_ = std::make_unique<TizenPlatformEventLoop>(
       std::this_thread::get_id(),  // main thread
       [this](const auto* task) {
         if (FlutterEngineRunTask(this->flutter_engine, task) != kSuccess) {
           FT_LOGE("Could not post an engine task.");
         }
       });
+
+  render_loop_ = std::make_unique<TizenRenderEventLoop>(
+      std::this_thread::get_id(),  // main thread
+      [this](const auto* task) {
+        if (FlutterEngineRunTask(this->flutter_engine, task) != kSuccess) {
+          FT_LOGE("Could not post an engine task.");
+        }
+      },
+      tizen_renderer.get());
 
   messenger = std::make_unique<FlutterDesktopMessenger>();
   messenger->engine = this;
@@ -142,10 +152,23 @@ bool TizenEmbedderEngine::RunEngine(
   };
   platform_task_runner.identifier = kPlatformTaskRunnerIdentifier;
 
+  FlutterTaskRunnerDescription render_task_runner = {};
+  render_task_runner.struct_size = sizeof(FlutterTaskRunnerDescription);
+  render_task_runner.user_data = render_loop_.get();
+  render_task_runner.runs_task_on_current_thread_callback =
+      [](void* data) -> bool {
+    return static_cast<TizenEventLoop*>(data)->RunsTasksOnCurrentThread();
+  };
+  render_task_runner.post_task_callback =
+      [](FlutterTask task, uint64_t target_time_nanos, void* data) -> void {
+    static_cast<TizenEventLoop*>(data)->PostTask(task, target_time_nanos);
+  };
+  render_task_runner.identifier = kRederTaskRunnerIdentifier;
+
   FlutterCustomTaskRunners custom_task_runners = {};
   custom_task_runners.struct_size = sizeof(FlutterCustomTaskRunners);
   custom_task_runners.platform_task_runner = &platform_task_runner;
-  custom_task_runners.render_task_runner = &platform_task_runner;
+  custom_task_runners.render_task_runner = &render_task_runner;
 
   FlutterRendererConfig config = {};
   config.type = kOpenGL;

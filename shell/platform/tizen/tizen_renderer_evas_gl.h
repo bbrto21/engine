@@ -5,15 +5,15 @@
 #ifndef EMBEDDER_TIZEN_RENDERER_EVAS_GL_H
 #define EMBEDDER_TIZEN_RENDERER_EVAS_GL_H
 
-#include "tizen_renderer.h"
-
 #include <Elementary.h>
 #include <Evas_GL.h>
 
+#include "tizen_renderer.h"
+
 class TizenRendererEvasGL : public TizenRenderer {
  public:
-  TizenRendererEvasGL(TizenRenderer::Delegate &delegate, int32_t x, int32_t y,
-                        int32_t w, int32_t h);
+  TizenRendererEvasGL(TizenRenderer::Delegate& delegate, int32_t x, int32_t y,
+                      int32_t w, int32_t h);
   ~TizenRendererEvasGL();
   TizenWindowGeometry GetGeometry() override;
   int GetEcoreWindowId() override;
@@ -22,16 +22,17 @@ class TizenRendererEvasGL : public TizenRenderer {
   void Show() override;
   void SetRotate(int angle) override;
 
+  void* GetImageHandle() override;
+
  protected:
   virtual void* SetupEvasWindow(int32_t x, int32_t y, int32_t w,
-                                  int32_t h) override;  
+                                int32_t h) override;
   virtual void DestoryEvasWindow() override;
   void SendRotationChangeDone() override;
-  void* GetImageHandle() override;
+
  private:
   Evas_Object* evas_window_{nullptr};
-  Evas_Object* graphicsAdapter_{nullptr};
-  static void RotationEventCb(void *data, Evas_Object * obj,
-									   void *event_info);
+  Evas_Object* graphics_adapter_{nullptr};
+  static void RotationEventCb(void* data, Evas_Object* obj, void* event_info);
 };
-#endif //EMBEDDER_TIZEN_RENDERER_ECORE_WL2_H
+#endif  // EMBEDDER_TIZEN_RENDERER_ECORE_WL2_H
