@@ -210,7 +210,7 @@ bool FlutterMarkExternalTextureFrameAvailable(
   }
   if (!texture_registrar->textures[texture_id]->OnFrameAvailable(
           (tbm_surface_h)tbm_surface)) {
-    FT_LOGE("OnFrameAvailable fail texture_id = %" PRId64, texture_id);
+    // If a texture that has not been used already exists, it can fail
     return false;
   }
   return (FlutterEngineMarkExternalTextureFrameAvailable(
