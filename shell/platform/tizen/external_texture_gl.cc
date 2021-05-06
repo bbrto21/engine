@@ -54,7 +54,6 @@ ExternalTextureGL::ExternalTextureGL()
       texture_id_(nextTextureId++) {}
 
 ExternalTextureGL::~ExternalTextureGL() {
-  mutex_.lock();
   if (state_->gl_texture != 0) {
     glDeleteTextures(1, &state_->gl_texture);
   }
@@ -65,14 +64,11 @@ ExternalTextureGL::~ExternalTextureGL() {
   }
 
   state_.release();
-  mutex_.unlock();
 }
 
 bool ExternalTextureGL::OnFrameAvailable(tbm_surface_h tbm_surface) {
-  mutex_.lock();
   if (!tbm_surface) {
     FT_LOGE("[texture id:%ld] tbm_surface is null", texture_id_);
-    mutex_.unlock();
     return false;
   }
 
@@ -81,30 +77,25 @@ bool ExternalTextureGL::OnFrameAvailable(tbm_surface_h tbm_surface) {
         "[texture id:%ld] Discard! an available tbm surface that has not yet "
         "been used exists",
         texture_id_);
-    mutex_.unlock();
     return false;
   }
 
   tbm_surface_info_s info;
   if (tbm_surface_get_info(tbm_surface, &info) != TBM_SURFACE_ERROR_NONE) {
     FT_LOGD("[texture id:%ld] tbm_surface not valid, pass", texture_id_);
-    mutex_.unlock();
     return false;
   }
 
   available_tbm_surface_ = tbm_surface;
   MarkTbmSurfaceToUse(available_tbm_surface_);
 
-  mutex_.unlock();
   return true;
 }
 
 bool ExternalTextureGL::PopulateTextureWithIdentifier(
     size_t width, size_t height, FlutterOpenGLTexture* opengl_texture) {
-  mutex_.lock();
   if (!available_tbm_surface_) {
     FT_LOGD("[texture id:%ld] available_tbm_surface_ is null", texture_id_);
-    mutex_.unlock();
     return false;
   }
   tbm_surface_info_s info;
@@ -113,7 +104,6 @@ bool ExternalTextureGL::PopulateTextureWithIdentifier(
     FT_LOGD("[texture id:%ld] tbm_surface is invalid", texture_id_);
     UnmarkTbmSurfaceToUse(available_tbm_surface_);
     available_tbm_surface_ = nullptr;
-    mutex_.unlock();
     return false;
   }
 
@@ -124,7 +114,6 @@ bool ExternalTextureGL::PopulateTextureWithIdentifier(
       EVAS_GL_NATIVE_SURFACE_TIZEN, (void*)(intptr_t)available_tbm_surface_,
       attribs);
   if (!egl_src_image) {
-    mutex_.unlock();
     return false;
   }
   if (state_->gl_texture == 0) {
@@ -157,7 +146,6 @@ bool ExternalTextureGL::PopulateTextureWithIdentifier(
   if (!egl_src_image) {
     FT_LOGE("[texture id:%ld] egl_src_image create fail!!, errorcode == %d",
             texture_id_, eglGetError());
-    mutex_.unlock();
     return false;
   }
   if (state_->gl_texture == 0) {
@@ -196,6 +184,5 @@ bool ExternalTextureGL::PopulateTextureWithIdentifier(
 
   opengl_texture->width = width;
   opengl_texture->height = height;
-  mutex_.unlock();
   return true;
 }
