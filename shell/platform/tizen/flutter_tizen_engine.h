@@ -11,6 +11,7 @@
 
 #include "flutter/shell/platform/common/cpp/client_wrapper/include/flutter/plugin_registrar.h"
 #include "flutter/shell/platform/common/cpp/incoming_message_dispatcher.h"
+#include "flutter/shell/platform/embedder/embedder.h"
 #include "flutter/shell/platform/tizen/channels/key_event_channel.h"
 #include "flutter/shell/platform/tizen/channels/lifecycle_channel.h"
 #include "flutter/shell/platform/tizen/channels/localization_channel.h"
@@ -67,6 +68,8 @@ class FlutterTizenEngine : public TizenRenderer::Delegate {
 
   void InitializeRenderer();
 
+  void NotifyLowMemoryWarning();
+
   bool RunEngine(const FlutterDesktopEngineProperties& engine_properties);
   bool StopEngine();
 
@@ -79,12 +82,27 @@ class FlutterTizenEngine : public TizenRenderer::Delegate {
   void SetPluginRegistrarDestructionCallback(
       FlutterDesktopOnPluginRegistrarDestroyed callback);
 
+  bool SendPlatformMessage(const char* channel,
+                           const uint8_t* message,
+                           const size_t message_size,
+                           const FlutterDesktopBinaryReply reply,
+                           void* user_data);
+  void SendPlatformMessageResponse(
+      const FlutterDesktopMessageResponseHandle* handle,
+      const uint8_t* data,
+      size_t data_length);
+  void SendPointerEvent(const FlutterPointerEvent& event);
   void SendWindowMetrics(int32_t width, int32_t height, double pixel_ratio);
   void SetWindowOrientation(int32_t degree);
   void OnOrientationChange(int32_t degree) override;
+  void OnVsync(intptr_t baton,
+               uint64_t frame_start_time_nanos,
+               uint64_t frame_target_time_nanos);
+  void UpdateLocales(const FlutterLocale** locales, size_t locales_count);
 
-  // The Flutter engine instance.
-  FLUTTER_API_SYMBOL(FlutterEngine) flutter_engine;
+  bool RegisterExternalTexture(int64_t texture_id);
+  bool UnregisterExternalTexture(int64_t texture_id);
+  bool MarkExternalTextureFrameAvailable(int64_t texture_id);
 
   // The plugin messenger handle given to API clients.
   std::unique_ptr<FlutterDesktopMessenger> messenger;
@@ -116,6 +134,12 @@ class FlutterTizenEngine : public TizenRenderer::Delegate {
   FlutterDesktopMessage ConvertToDesktopMessage(
       const FlutterPlatformMessage& engine_message);
   FlutterRendererConfig GetRendererConfig();
+  UniqueAotDataPtr LoadAotData(std::string aot_data_path);
+
+  FlutterEngineProcTable embedder_api_ = {};
+
+  // The Flutter engine instance.
+  FLUTTER_API_SYMBOL(FlutterEngine) flutter_engine;
 
   // The handlers listening to platform events.
   std::unique_ptr<KeyEventHandler> key_event_handler_;
