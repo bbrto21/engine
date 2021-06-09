@@ -13,72 +13,14 @@
 namespace txt {
 
 std::vector<std::string> GetDefaultFontFamilies() {
-  return {
-      "SamsungOneUI",
-      "SamsungOneUIArabic",
-      "SamsungOneUIArmenian",
-      "SamsungOneUIBangla",
-      "SamsungOneUIDevanagari",
-      "SamsungOneUIEthiopic",
-      "SamsungOneUIFallback",
-      "SamsungOneUIGeorgian",
-      "SamsungOneUIGujarati",
-      "SamsungOneUIGurmukhi",
-      "SamsungOneUIHebrew",
-      "SamsungOneUIJP",
-      "SamsungOneUIKannada",
-      "SamsungOneUIKhmer",
-      "SamsungOneUIKorean",
-      "SamsungOneUIKoreanH",
-      "SamsungOneUILao",
-      "SamsungOneUIMalayalam",
-      "SamsungOneUIMyanmar",
-      "SamsungOneUIOdia",
-      "SamsungOneUIOlChiki",
-      "SamsungOneUISCN",
-      "SamsungOneUISinhala",
-      "SamsungOneUITCN",
-      "SamsungOneUITagalog",
-      "SamsungOneUITamil",
-      "SamsungOneUITelugu",
-      "SamsungOneUIThai",
-      "SamsungOneFallback",
-      "SECEmoji",
-      "BreezeSans",
-      "BreezeSansArabic",
-      "BreezeSansArmenian",
-      "BreezeSansBengali",
-      "BreezeSansChinese",
-      "BreezeSansEthiopic",
-      "BreezeSansGeorgian",
-      "BreezeSansGujarathi",
-      "BreezeSansHebrew",
-      "BreezeSansHindi",
-      "BreezeSansJapanese",
-      "BreezeSansKannada",
-      "BreezeSansKhmer",
-      "BreezeSansKorean",
-      "BreezeSansLao",
-      "BreezeSansMalayalam",
-      "BreezeSansMeeteiMayek",
-      "BreezeSansMyanmar",
-      "BreezeSansOriya",
-      "BreezeSansPunjabi",
-      "BreezeSansSinhala",
-      "BreezeSansTamilBreezeSansTamil",
-      "BreezeSansTelugu",
-      "BreezeSansThai",
-      "BreezeSansTibetan",
-      "BreezeSansFallback",
-      "BreezeColorEmoji",
-  };
+  return {"SamsungOneUI", "BreezeSans", "Ubuntu", "Cantarell", "DejaVu Sans", "Liberation Sans", "Arial"};
 }
 
 sk_sp<SkFontMgr> GetDefaultFontManager() {
 #ifdef FLUTTER_USE_FONTCONFIG
   return SkFontMgr_New_FontConfig(nullptr);
 #else
-  return SkFontMgr_New_Custom_Directory("/usr/share/");
+  return SkFontMgr_New_Custom_Directory("/usr/share/fonts/");
 #endif
 }
 
