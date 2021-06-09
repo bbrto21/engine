@@ -164,6 +164,38 @@ FakedFont FontFamily::getClosestMatch(FontStyle style) const {
   return FakedFont{nullptr, FontFakery()};
 }
 
+FakedFont FontFamily::getClosestMatch(FontStyle style,
+                                      uint32_t ch,
+                                      int variant) {
+  const Font* bestFont = nullptr;
+  int bestMatch = 99;
+  int bestIndex = 0;
+  for (size_t i = 0; i < mFonts.size(); i++) {
+    const Font& font = mFonts[i];
+    int match = computeMatch(font.style, style);
+
+    hb_font_t* hb_font = getHbFontLocked(font.typeface.get());
+    uint32_t unusedGlyph;
+    bool hasGlyph = hb_font_get_glyph(hb_font, ch, variant, &unusedGlyph);
+    hb_font_destroy(hb_font);
+    if (hasGlyph == false) {
+      continue;
+    }
+
+    if (match < bestMatch) {
+      bestFont = &font;
+      bestMatch = match;
+      bestIndex = i;
+    }
+  }
+  if (bestFont != nullptr) {
+    return FakedFont{bestFont->typeface.get(),
+                     computeFakery(style, bestFont->style)};
+  } else {
+    return FakedFont{nullptr, FontFakery()};
+  }
+}
+
 bool FontFamily::isColorEmojiFamily() const {
   const FontLanguages& languageList = FontLanguageListCache::getById(mLangId);
   for (size_t i = 0; i < languageList.size(); ++i) {
