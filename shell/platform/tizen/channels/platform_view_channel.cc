@@ -14,66 +14,20 @@
 
 static constexpr char kChannelName[] = "flutter/platform_views";
 
-std::string ExtractStringFromMap(const flutter::EncodableValue& arguments,
-                                 const char* key) {
-  if (std::holds_alternative<flutter::EncodableMap>(arguments)) {
-    flutter::EncodableMap values = std::get<flutter::EncodableMap>(arguments);
-    flutter::EncodableValue value = values[flutter::EncodableValue(key)];
-    if (std::holds_alternative<std::string>(value)) {
-      return std::get<std::string>(value);
+template <typename T>
+bool GetValueFromEncodableMap(const flutter::EncodableValue& arguments,
+                              std::string key,
+                              T* out) {
+  if (auto pmap = std::get_if<flutter::EncodableMap>(&arguments)) {
+    auto iter = pmap->find(flutter::EncodableValue(key));
+    if (iter != pmap->end() && !iter->second.IsNull()) {
+      if (auto pval = std::get_if<T>(&iter->second)) {
+        *out = *pval;
+        return true;
+      }
     }
   }
-  return std::string();
-}
-
-int ExtractIntFromMap(const flutter::EncodableValue& arguments,
-                      const char* key) {
-  if (std::holds_alternative<flutter::EncodableMap>(arguments)) {
-    flutter::EncodableMap values = std::get<flutter::EncodableMap>(arguments);
-    flutter::EncodableValue value = values[flutter::EncodableValue(key)];
-    if (std::holds_alternative<int>(value)) {
-      return std::get<int>(value);
-    }
-  }
-  return -1;
-}
-
-double ExtractDoubleFromMap(const flutter::EncodableValue& arguments,
-                            const char* key) {
-  if (std::holds_alternative<flutter::EncodableMap>(arguments)) {
-    flutter::EncodableMap values = std::get<flutter::EncodableMap>(arguments);
-    flutter::EncodableValue value = values[flutter::EncodableValue(key)];
-    if (std::holds_alternative<double>(value)) {
-      return std::get<double>(value);
-    }
-  }
-  return -1;
-}
-
-flutter::EncodableMap ExtractMapFromMap(
-    const flutter::EncodableValue& arguments,
-    const char* key) {
-  if (std::holds_alternative<flutter::EncodableMap>(arguments)) {
-    flutter::EncodableMap values = std::get<flutter::EncodableMap>(arguments);
-    flutter::EncodableValue value = values[flutter::EncodableValue(key)];
-    if (std::holds_alternative<flutter::EncodableMap>(value)) {
-      return std::get<flutter::EncodableMap>(value);
-    }
-  }
-  return flutter::EncodableMap();
-}
-
-flutter::EncodableList ExtractListFromMap(
-    const flutter::EncodableValue& arguments,
-    const char* key) {
-  if (std::holds_alternative<flutter::EncodableMap>(arguments)) {
-    flutter::EncodableMap values = std::get<flutter::EncodableMap>(arguments);
-    flutter::EncodableValue value = values[flutter::EncodableValue(key)];
-    if (std::holds_alternative<flutter::EncodableList>(value)) {
-      return std::get<flutter::EncodableList>(value);
-    }
-  }
-  return flutter::EncodableList();
+  return false;
 }
 
 PlatformViewChannel::PlatformViewChannel(flutter::BinaryMessenger* messenger,
@@ -154,10 +108,16 @@ void PlatformViewChannel::HandleMethodCall(
 
   FT_LOGI("PlatformViewChannel method: %s", method.c_str());
   if (method == "create") {
-    std::string viewType = ExtractStringFromMap(arguments, "viewType");
-    int viewId = ExtractIntFromMap(arguments, "id");
-    double width = ExtractDoubleFromMap(arguments, "width");
-    double height = ExtractDoubleFromMap(arguments, "height");
+    std::string viewType;
+    int viewId = 0;
+    double width = 0.0, height = 0.0;
+    if (!GetValueFromEncodableMap(arguments, "viewType", &viewType) ||
+        !GetValueFromEncodableMap(arguments, "id", &viewId) ||
+        !GetValueFromEncodableMap(arguments, "width", &width) ||
+        !GetValueFromEncodableMap(arguments, "height", &height)) {
+      result->Error("Invalid arguments");
+      return;
+    }
 
     FT_LOGI(
         "PlatformViewChannel create viewType: %s id: %d width: %f height: %f ",
@@ -209,26 +169,37 @@ void PlatformViewChannel::HandleMethodCall(
       result->Error("Can't find view id");
     }
   } else {
-    int viewId = ExtractIntFromMap(arguments, "id");
+    int viewId = 0;
+    if (!GetValueFromEncodableMap(arguments, "id", &viewId)) {
+      result->Error("Invalid arguments");
+      return;
+    }
+
     auto it = view_instances_.find(viewId);
     if (viewId >= 0 && it != view_instances_.end()) {
       if (method == "dispose") {
         it->second->Dispose();
         result->Success();
       } else if (method == "resize") {
-        double width = ExtractDoubleFromMap(arguments, "width");
-        double height = ExtractDoubleFromMap(arguments, "height");
+        double width = 0.0, height = 0.0;
+        if (!GetValueFromEncodableMap(arguments, "width", &width) ||
+            !GetValueFromEncodableMap(arguments, "height", &height)) {
+          result->Error("Invalid arguments");
+          return;
+        }
         it->second->Resize(width, height);
         result->Success();
       } else if (method == "touch") {
         int type, button;
         double x, y, dx, dy;
 
-        flutter::EncodableList event = ExtractListFromMap(arguments, "event");
-        if (event.size() != 6) {
+        flutter::EncodableList event;
+        if (!GetValueFromEncodableMap(arguments, "event", &event) ||
+            event.size() != 6) {
           result->Error("Invalid Arguments");
           return;
         }
+
         type = std::get<int>(event[0]);
         button = std::get<int>(event[1]);
         x = std::get<double>(event[2]);
