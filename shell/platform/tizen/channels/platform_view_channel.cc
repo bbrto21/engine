@@ -50,14 +50,14 @@ PlatformViewChannel::~PlatformViewChannel() {
 
 void PlatformViewChannel::Dispose() {
   // Clean-up view_instances_
-  for (auto const& [viewId, viewInstance] : view_instances_) {
-    delete viewInstance;
+  for (auto const& [view_id, view_instance] : view_instances_) {
+    delete view_instance;
   }
   view_instances_.clear();
 
   // Clean-up view_factories_
-  for (auto const& [viewType, viewFactory] : view_factories_) {
-    viewFactory->Dispose();
+  for (auto const& [view_type, view_factory] : view_factories_) {
+    view_factory->Dispose();
   }
   view_factories_.clear();
 }
@@ -106,13 +106,12 @@ void PlatformViewChannel::HandleMethodCall(
   const auto method = call.method_name();
   const auto& arguments = *call.arguments();
 
-  FT_LOGI("PlatformViewChannel method: %s", method.c_str());
   if (method == "create") {
-    std::string viewType;
-    int viewId = 0;
+    std::string view_type;
+    int view_id = -1;
     double width = 0.0, height = 0.0;
-    if (!GetValueFromEncodableMap(arguments, "viewType", &viewType) ||
-        !GetValueFromEncodableMap(arguments, "id", &viewId) ||
+    if (!GetValueFromEncodableMap(arguments, "viewType", &view_type) ||
+        !GetValueFromEncodableMap(arguments, "id", &view_id) ||
         !GetValueFromEncodableMap(arguments, "width", &width) ||
         !GetValueFromEncodableMap(arguments, "height", &height)) {
       result->Error("Invalid arguments");
@@ -121,47 +120,47 @@ void PlatformViewChannel::HandleMethodCall(
 
     FT_LOGI(
         "PlatformViewChannel create viewType: %s id: %d width: %f height: %f ",
-        viewType.c_str(), viewId, width, height);
+        view_type.c_str(), view_id, width, height);
 
     flutter::EncodableMap values = std::get<flutter::EncodableMap>(arguments);
     flutter::EncodableValue value = values[flutter::EncodableValue("params")];
-    ByteMessage byteMessage;
+    ByteMessage byte_message;
     if (std::holds_alternative<ByteMessage>(value)) {
-      byteMessage = std::get<ByteMessage>(value);
+      byte_message = std::get<ByteMessage>(value);
     }
-    auto it = view_factories_.find(viewType);
+    auto it = view_factories_.find(view_type);
     if (it != view_factories_.end()) {
-      auto focuesdView = view_instances_.find(CurrentFocusedViewId());
-      if (focuesdView != view_instances_.end()) {
-        focuesdView->second->SetFocus(false);
+      auto focuesd_view = view_instances_.find(CurrentFocusedViewId());
+      if (focuesd_view != view_instances_.end()) {
+        focuesd_view->second->SetFocus(false);
       }
 
-      auto viewInstance =
-          it->second->Create(viewId, width, height, byteMessage);
-      if (viewInstance) {
+      auto view_instance =
+          it->second->Create(view_id, width, height, byte_message);
+      if (view_instance) {
         view_instances_.insert(
-            std::pair<int, PlatformView*>(viewId, viewInstance));
+            std::pair<int, PlatformView*>(view_id, view_instance));
 
         if (engine_ && engine_->text_input_channel) {
           Ecore_IMF_Context* context =
               engine_->text_input_channel->GetImfContext();
-          viewInstance->SetSoftwareKeyboardContext(context);
+          view_instance->SetSoftwareKeyboardContext(context);
         }
-        result->Success(flutter::EncodableValue(viewInstance->GetTextureId()));
+        result->Success(flutter::EncodableValue(view_instance->GetTextureId()));
       } else {
         result->Error("Can't create a webview instance!!");
       }
     } else {
-      FT_LOGE("can't find view type = %s", viewType.c_str());
+      FT_LOGE("can't find view type = %s", view_type.c_str());
       result->Error("Can't find view type");
     }
   } else if (method == "clearFocus") {
-    int viewId = -1;
+    int view_id = -1;
     if (std::holds_alternative<int>(arguments)) {
-      viewId = std::get<int>(arguments);
+      view_id = std::get<int>(arguments);
     };
-    auto it = view_instances_.find(viewId);
-    if (viewId >= 0 && it != view_instances_.end()) {
+    auto it = view_instances_.find(view_id);
+    if (view_id >= 0 && it != view_instances_.end()) {
       it->second->SetFocus(false);
       it->second->ClearFocus();
       result->Success();
@@ -169,14 +168,14 @@ void PlatformViewChannel::HandleMethodCall(
       result->Error("Can't find view id");
     }
   } else {
-    int viewId = 0;
-    if (!GetValueFromEncodableMap(arguments, "id", &viewId)) {
+    int view_id = -1;
+    if (!GetValueFromEncodableMap(arguments, "id", &view_id)) {
       result->Error("Invalid arguments");
       return;
     }
 
-    auto it = view_instances_.find(viewId);
-    if (viewId >= 0 && it != view_instances_.end()) {
+    auto it = view_instances_.find(view_id);
+    if (view_id >= 0 && it != view_instances_.end()) {
       if (method == "dispose") {
         it->second->Dispose();
         result->Success();
@@ -190,8 +189,8 @@ void PlatformViewChannel::HandleMethodCall(
         it->second->Resize(width, height);
         result->Success();
       } else if (method == "touch") {
-        int type, button;
-        double x, y, dx, dy;
+        int type = 0, button = 0;
+        double x = 0.0, y = 0.0, dx = 0.0, dy = 0.0;
 
         flutter::EncodableList event;
         if (!GetValueFromEncodableMap(arguments, "event", &event) ||
@@ -210,14 +209,14 @@ void PlatformViewChannel::HandleMethodCall(
         it->second->Touch(type, button, x, y, dx, dy);
 
         if (!it->second->IsFocused()) {
-          auto focuesdView = view_instances_.find(CurrentFocusedViewId());
-          if (focuesdView != view_instances_.end()) {
-            focuesdView->second->SetFocus(false);
+          auto focuesd_view = view_instances_.find(CurrentFocusedViewId());
+          if (focuesd_view != view_instances_.end()) {
+            focuesd_view->second->SetFocus(false);
           }
 
           it->second->SetFocus(true);
           if (channel_ != nullptr) {
-            auto id = std::make_unique<flutter::EncodableValue>(viewId);
+            auto id = std::make_unique<flutter::EncodableValue>(view_id);
             channel_->InvokeMethod("viewFocused", std::move(id));
           }
         }
