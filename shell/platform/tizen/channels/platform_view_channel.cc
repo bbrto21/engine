@@ -130,9 +130,9 @@ void PlatformViewChannel::HandleMethodCall(
     }
     auto it = view_factories_.find(view_type);
     if (it != view_factories_.end()) {
-      auto focuesd_view = view_instances_.find(CurrentFocusedViewId());
-      if (focuesd_view != view_instances_.end()) {
-        focuesd_view->second->SetFocus(false);
+      auto focused_view = view_instances_.find(CurrentFocusedViewId());
+      if (focused_view != view_instances_.end()) {
+        focused_view->second->SetFocus(false);
       }
 
       auto view_instance =
@@ -209,9 +209,9 @@ void PlatformViewChannel::HandleMethodCall(
         it->second->Touch(type, button, x, y, dx, dy);
 
         if (!it->second->IsFocused()) {
-          auto focuesd_view = view_instances_.find(CurrentFocusedViewId());
-          if (focuesd_view != view_instances_.end()) {
-            focuesd_view->second->SetFocus(false);
+          auto focused_view = view_instances_.find(CurrentFocusedViewId());
+          if (focused_view != view_instances_.end()) {
+            focused_view->second->SetFocus(false);
           }
 
           it->second->SetFocus(true);
