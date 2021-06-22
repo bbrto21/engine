@@ -13,7 +13,7 @@
 namespace txt {
 
 std::vector<std::string> GetDefaultFontFamilies() {
-  return {"TizenDefaultFont"};
+  return {"TizenDefaultFont", "SamsungOneUI"};
 }
 
 sk_sp<SkFontMgr> GetDefaultFontManager() {
