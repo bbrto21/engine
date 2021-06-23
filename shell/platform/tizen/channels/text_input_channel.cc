@@ -407,12 +407,11 @@ void TextInputChannel::SendStateUpdate(const TextInputModel& model) {
 bool TextInputChannel::FilterEvent(Ecore_Event_Key* keyDownEvent) {
   bool handled = false;
 
-#ifdef TIZEN_RENDERER_EVAS_GL
-  // Hardware keyboard not supported when running in Evas GL mode.
+#ifdef WEARABLE_PROFILE
+  // Hardware keyboard not supported on watches.
   bool isIME = true;
 #else
-  bool isIME = ecore_imf_context_keyboard_mode_get(imf_context_) ==
-               ECORE_IMF_INPUT_PANEL_SW_KEYBOARD_MODE;
+  bool isIME = strcmp(ecore_device_name_get(keyDownEvent->dev), "ime") == 0;
 #endif
 
   Ecore_IMF_Event_Key_Down ecoreKeyDownEvent;
