@@ -24,8 +24,7 @@ class FlutterTizenEngine;
 
 class PlatformViewChannel {
  public:
-  explicit PlatformViewChannel(BinaryMessenger* messenger,
-                               FlutterTizenEngine* engine);
+  explicit PlatformViewChannel(BinaryMessenger* messenger);
   virtual ~PlatformViewChannel();
 
   void Dispose();
@@ -48,7 +47,6 @@ class PlatformViewChannel {
   void HandleMethodCall(const MethodCall<EncodableValue>& call,
                         std::unique_ptr<MethodResult<EncodableValue>> result);
 
-  FlutterTizenEngine* engine_;
   std::unique_ptr<MethodChannel<EncodableValue>> channel_;
   std::map<std::string, std::unique_ptr<PlatformViewFactory>> view_factories_;
   std::map<int, PlatformView*> view_instances_;

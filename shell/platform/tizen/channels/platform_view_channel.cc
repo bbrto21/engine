@@ -8,7 +8,6 @@
 #include "flutter/shell/platform/common/client_wrapper/include/flutter/standard_message_codec.h"
 #include "flutter/shell/platform/common/client_wrapper/include/flutter/standard_method_codec.h"
 #include "flutter/shell/platform/common/json_method_codec.h"
-#include "flutter/shell/platform/tizen/channels/text_input_channel.h"
 #include "flutter/shell/platform/tizen/flutter_tizen_engine.h"
 #include "flutter/shell/platform/tizen/public/flutter_platform_view.h"
 #include "flutter/shell/platform/tizen/tizen_log.h"
@@ -33,10 +32,8 @@ bool GetValueFromEncodableMap(const EncodableValue& arguments,
   return false;
 }
 
-PlatformViewChannel::PlatformViewChannel(BinaryMessenger* messenger,
-                                         FlutterTizenEngine* engine)
-    : engine_(engine),
-      channel_(std::make_unique<MethodChannel<EncodableValue>>(
+PlatformViewChannel::PlatformViewChannel(BinaryMessenger* messenger)
+    : channel_(std::make_unique<MethodChannel<EncodableValue>>(
           messenger,
           kChannelName,
           &StandardMethodCodec::GetInstance())) {
@@ -162,12 +159,6 @@ void PlatformViewChannel::HandleMethodCall(
       if (view_instance) {
         view_instances_.insert(
             std::pair<int, PlatformView*>(view_id, view_instance));
-
-        if (engine_ && engine_->text_input_channel) {
-          Ecore_IMF_Context* context =
-              engine_->text_input_channel->GetImfContext();
-          view_instance->SetSoftwareKeyboardContext(context);
-        }
         result->Success(EncodableValue(view_instance->GetTextureId()));
       } else {
         result->Error("Can't create a webview instance!!");
@@ -264,5 +255,4 @@ void PlatformViewChannel::HandleMethodCall(
     }
   }
 }
-
 }  // namespace flutter
