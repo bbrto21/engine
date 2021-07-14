@@ -117,15 +117,16 @@ TextInputChannel::TextInputChannel(BinaryMessenger* messenger,
 
 TextInputChannel::~TextInputChannel() {}
 
-void TextInputChannel::OnKeyDown(Ecore_Event_Key* key) {
-  if (active_model_ == nullptr) {
-    FT_LOGW("There is no active TextInputModel");
-    return;
+bool TextInputChannel::SendKeyEvent(Ecore_Event_Key* key, bool is_down) {
+  if (!active_model_ || !is_down) {
+    return false;
   }
 
   if (!FilterEvent(key) && !text_editing_context_.has_preedit_) {
     HandleUnfilteredEvent(key);
   }
+
+  return true;
 }
 
 void TextInputChannel::HandleMethodCall(

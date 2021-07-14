@@ -42,7 +42,7 @@ class TextInputChannel {
 
   bool IsSoftwareKeyboardShowing() { return is_software_keyboard_showing_; }
 
-  void OnKeyDown(Ecore_Event_Key* key);
+  bool SendKeyEvent(Ecore_Event_Key* key, bool is_down);
 
  private:
   void HandleMethodCall(
