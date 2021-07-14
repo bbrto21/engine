@@ -8,6 +8,7 @@
 #include "flutter/shell/platform/tizen/tizen_log.h"
 
 namespace {
+
 const char* GetEcoreImfContextAvailableID() {
   Eina_List* modules;
 

@@ -20,8 +20,6 @@ class PlatformViewFactory;
 
 namespace flutter {
 
-class FlutterTizenEngine;
-
 class PlatformViewChannel {
  public:
   explicit PlatformViewChannel(BinaryMessenger* messenger);

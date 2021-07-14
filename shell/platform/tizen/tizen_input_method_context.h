@@ -8,6 +8,7 @@
 #define EFL_BETA_API_SUPPORT
 #include <Ecore_IMF.h>
 #include <Ecore_Input.h>
+
 #include <functional>
 
 namespace flutter {
@@ -77,5 +78,7 @@ class TizenInputMethodContext {
   OnPreeditCallback on_preedit_callback_;
   OnInputPannelStateChangedCallback on_input_pannel_state_changed_callback_;
 };
+
 }  // namespace flutter
-#endif
+
+#endif  // EMBEDDER_TIZEN_INPUT_METHOD_CONTEXT_H_
