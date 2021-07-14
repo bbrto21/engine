@@ -40,9 +40,6 @@ class PlatformViewChannel {
   void SendKeyEvent(Ecore_Event_Key* key, bool is_down);
   int CurrentFocusedViewId();
 
-  void DispatchCompositionUpdateEvent(const std::string& key);
-  void DispatchCompositionEndEvent(const std::string& key);
-
  private:
   void HandleMethodCall(const MethodCall<EncodableValue>& call,
                         std::unique_ptr<MethodResult<EncodableValue>> result);
