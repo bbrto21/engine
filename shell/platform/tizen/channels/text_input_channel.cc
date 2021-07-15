@@ -274,7 +274,7 @@ bool TextInputChannel::FilterEvent(Ecore_Event_Key* event) {
   bool is_ime = strcmp(ecore_device_name_get(event->dev), "ime") == 0;
 #endif
 
-  if (ShouldNotUseFilterEvent(event->key, is_ime)) {
+  if (ShouldNotFilterEvent(event->key, is_ime)) {
     ResetTextEditingContext();
     input_method_context_->ResetInputMethodContext();
     FT_LOGW("Force redirect IME key-event[%s] to fallback", event->keyname);
@@ -381,7 +381,7 @@ void TextInputChannel::ConsumeLastPreedit() {
   text_editing_context_.preedit_start_pos_ = 0;
 }
 
-bool TextInputChannel::ShouldNotUseFilterEvent(std::string key, bool is_ime) {
+bool TextInputChannel::ShouldNotFilterEvent(std::string key, bool is_ime) {
   // Force redirect to HandleUnfilteredEvent(especially on TV)
   // If you don't do this, it will affects the input panel.
   // For example, when the left key of the input panel is pressed, the focus

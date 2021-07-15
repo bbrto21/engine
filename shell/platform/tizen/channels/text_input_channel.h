@@ -56,7 +56,7 @@ class TextInputChannel {
   void ResetTextEditingContext() {
     text_editing_context_ = TextEditingContext();
   }
-  bool ShouldNotUseFilterEvent(std::string key, bool is_ime);
+  bool ShouldNotFilterEvent(std::string key, bool is_ime);
 
   std::unique_ptr<MethodChannel<rapidjson::Document>> channel_;
   std::unique_ptr<TextInputModel> active_model_;
